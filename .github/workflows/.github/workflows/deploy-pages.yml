@@ -21,13 +21,19 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
+
+      - name: Check frontend API URL
+        run: grep -n "const API" src/App.jsx
+        working-directory: ./client
 
       - name: Install dependencies
         run: npm ci
@@ -38,6 +44,15 @@ jobs:
         working-directory: ./client
         env:
           VITE_API_URL: https://leaveeasemern.onrender.com
+
+      - name: Check built API URL
+        run: |
+          if grep -R "localhost:5000" dist; then
+            echo "ERROR: Old localhost URL found in build"
+            exit 1
+          fi
+          echo "Frontend API URL check passed"
+        working-directory: ./client
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
