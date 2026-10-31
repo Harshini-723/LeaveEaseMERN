@@ -1,5 +1,5 @@
 
-name: LeaveEase React Build
+name: LeaveEase CI
 
 on:
   push:
@@ -11,22 +11,45 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  frontend:
+    name: React Frontend Build
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      - name: Install dependencies
+      - name: Install frontend dependencies
         run: npm ci
         working-directory: ./client
 
-      - name: Build React application
+      - name: Build frontend
         run: npm run build
         working-directory: ./client
+
+  backend:
+    name: Express Backend Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install backend dependencies
+        run: npm install
+        working-directory: ./server
+
+      - name: Check backend JavaScript
+        run: node --check server.js
+        working-directory: ./server
+
