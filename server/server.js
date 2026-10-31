@@ -1,3 +1,4 @@
+
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
@@ -5,57 +6,139 @@ import dotenv from "dotenv";
 import LeaveRequest from "./src/models/LeaveRequest.js";
 
 dotenv.config();
+
 const app = express();
-app.use(cors({ origin: process.env.CLIENT_URL?.split(",") || true }));
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://harshini-723.github.io",
+  "https://leaveeasemern.vercel.app"
+];
+
+app.use(cors({
+  origin: allowedOrigins
+}));
+
 app.use(express.json());
 
-app.get("/api/health", (req, res) => res.json({ status: "ok", app: "LeaveEase API" }));
+// Health check
+app.get("/api/health", (req, res) => {
+  res.json({
+    status: "ok",
+    app: "LeaveEase API"
+  });
+});
 
+// Get all leave requests
 app.get("/api/leaves", async (req, res) => {
   try {
     const leaves = await LeaveRequest.find().sort({ createdAt: -1 });
     res.json(leaves);
-  } catch (error) { res.status(500).json({ message: "Could not load leave requests." }); }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Could not load leave requests."
+    });
+  }
 });
 
+// Submit a leave request
 app.post("/api/leaves", async (req, res) => {
   try {
     const { leaveType, days, reason, employeeName } = req.body;
-    if (!["Casual Leave", "Medical Leave"].includes(leaveType) || !Number.isInteger(Number(days)) || Number(days) < 1 || !reason?.trim()) {
-      return res.status(400).json({ message: "Enter a valid leave type, number of days and reason." });
+
+    if (
+      !["Casual Leave", "Medical Leave"].includes(leaveType) ||
+      !Number.isInteger(Number(days)) ||
+      Number(days) < 1 ||
+      !reason?.trim()
+    ) {
+      return res.status(400).json({
+        message: "Enter a valid leave type, number of days and reason."
+      });
     }
+
     const leave = await LeaveRequest.create({
-      leaveType, days: Number(days), reason: reason.trim(),
+      leaveType,
+      days: Number(days),
+      reason: reason.trim(),
       employeeName: employeeName?.trim() || "Employee",
       status: "Pending Approval"
     });
+
     res.status(201).json(leave);
-  } catch (error) { res.status(500).json({ message: "Could not submit leave request." }); }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Could not submit leave request."
+    });
+  }
 });
 
+// Approve or reject a leave request
 app.patch("/api/leaves/:id", async (req, res) => {
   try {
     const { status } = req.body;
-    if (!["Approved", "Rejected", "Pending Approval"].includes(status)) return res.status(400).json({ message: "Invalid status." });
-    const leave = await LeaveRequest.findByIdAndUpdate(req.params.id, { status }, { new: true, runValidators: true });
-    if (!leave) return res.status(404).json({ message: "Leave request not found." });
+
+    if (!["Approved", "Rejected", "Pending Approval"].includes(status)) {
+      return res.status(400).json({
+        message: "Invalid status."
+      });
+    }
+
+    const leave = await LeaveRequest.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true, runValidators: true }
+    );
+
+    if (!leave) {
+      return res.status(404).json({
+        message: "Leave request not found."
+      });
+    }
+
     res.json(leave);
-  } catch (error) { res.status(500).json({ message: "Could not update request." }); }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Could not update request."
+    });
+  }
 });
 
+// Delete a leave request
 app.delete("/api/leaves/:id", async (req, res) => {
   try {
     const leave = await LeaveRequest.findByIdAndDelete(req.params.id);
-    if (!leave) return res.status(404).json({ message: "Leave request not found." });
-    res.json({ message: "Request deleted." });
-  } catch (error) { res.status(500).json({ message: "Could not delete request." }); }
+
+    if (!leave) {
+      return res.status(404).json({
+        message: "Leave request not found."
+      });
+    }
+
+    res.json({
+      message: "Request deleted."
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Could not delete request."
+    });
+  }
 });
 
+// MongoDB connection and server start
 const PORT = process.env.PORT || 5000;
+
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => {
     console.log("MongoDB connected");
-    app.listen(PORT, () => console.log(`LeaveEase API running on port ${PORT}`));
+
+    app.listen(PORT, () => {
+      console.log(`LeaveEase API running on port ${PORT}`);
+    });
   })
   .catch((error) => {
     console.error("MongoDB connection failed:", error.message);
