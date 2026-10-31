@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { CalendarDays, Palmtree, BriefcaseMedical, ClipboardList, CheckCircle2, Clock3, XCircle, Users } from "lucide-react";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API = "https://leaveeasemern.onrender.com";
 const initialBalances = { "Casual Leave": 10, "Medical Leave": 10 };
 
 function App() {
