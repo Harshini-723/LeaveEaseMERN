@@ -67,3 +67,4 @@ If you already installed dependencies, run `npm run dev` from the project root.
 - This is a learning/demo app and does not include user login or role-based security. The Admin Portal switch is a demonstration UI, not secure administrator authentication. Add authentication and authorization before using it for real employee data.
 - Leave balances start at 10 casual days and 10 medical days per employee in this demo. Approved requests reduce the displayed balances.
 - If Render's free service has gone idle, its first request may take a short time to wake up.
+GitHub Actions CI/CD testing completed.
